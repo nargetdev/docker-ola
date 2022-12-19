@@ -10,9 +10,9 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get clean \
     && rm -rf /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
-COPY ./vendor/bin/wait-for-it /ola/bin/wait-for-it
-RUN chown -R :olad /ola/bin
-RUN chmod -R ug+rx /ola/bin
+# COPY ./vendor/bin/wait-for-it /ola/bin/wait-for-it
+# RUN chown -R :olad /ola/bin
+# RUN chmod -R ug+rx /ola/bin
 COPY ./ftdi.rules /etc/udev/rules.d/ftdi.rules
 
 # The ola package creates an "olad" user and sets its home, but fails to create the directory.
@@ -30,6 +30,14 @@ RUN olad -f && sleep 1 \
     # Disable all OLA plugins for a clean slate, without plugin conflicts.
     && bash -c 'for pid in {1..99}; do ola_plugin_state -p $pid -s disabled &>/dev/null; done'
 
-ENTRYPOINT ["olad"]
+# COPY ola-e131.conf 	/usr/lib/olad/.ola/ola-e131.conf
+COPY ola-openpixelcontrol.conf 	/usr/lib/olad/.ola/ola-openpixelcontrol.conf
+# COPY ola-artnet.conf /usr/lib/olad/.ola/ola-artnet.conf
 
-EXPOSE 9010 9090
+# RUN ola_patch  -d 1 -p 0 -u 1 -i
+
+COPY start.sh .
+
+EXPOSE 9010 9090 7890 6454 5568
+
+CMD ["/bin/bash", "start.sh"]
